@@ -48,7 +48,7 @@ public class Board extends JPanel {
 	public void drawFrame() {
 		// Create a JFrame
 		JFrame f = new JFrame();
-		f.setSize(900, 1200);
+		f.setSize(900, 850);
 		f.setTitle("Clue Board");
 		f.setLayout(new BorderLayout());
 
