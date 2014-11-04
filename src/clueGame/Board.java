@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -41,7 +42,9 @@ public class Board extends JPanel {
 	private Set<BoardCell> targetList;
 	private Map<BoardCell, LinkedList<BoardCell>> adjList;
 	private ArrayList<Player> players;
+	private List<Card> humanCards = new ArrayList<Card>();
 	private DetectiveNotes dNotes = new DetectiveNotes();
+	private CardPanel cPanel;
 
 	// private myDialog dialog;
 
@@ -51,31 +54,12 @@ public class Board extends JPanel {
 		f.setSize(900, 1200);
 		f.setTitle("Clue Board");
 		f.setLayout(new BorderLayout());
-
-		// Add JPanel to your JFrame
-		JPanel panel = new JPanel();
-		panel.setLocation(0, 0);
-		panel.setSize(750, 750);
-		f.add(panel, BorderLayout.CENTER);
 		f.setJMenuBar(createMenuBar());		
 		
-		// JPanel for Human Cards
-		JPanel panel2 = new JPanel();
-		panel2.setLayout(new GridLayout(1,4));
-		panel2.setSize(100,750);
-		JLabel myCards = new JLabel("My Cards");
-		panel2.add(myCards);
-		JTextField people = new JTextField();
-		JTextField weapons = new JTextField();
-		JTextField rooms = new JTextField();
+		humanCards = players.get(0).getCards();
+		System.out.println(humanCards);
+		cPanel = new CardPanel(humanCards);
 		
-		panel2.setBorder(new TitledBorder(new EtchedBorder(), "People"));
-		panel2.add(people);
-		panel2.setBorder(new TitledBorder(new EtchedBorder(), "Rooms"));
-		panel2.add(rooms);
-		panel2.setBorder(new TitledBorder(new EtchedBorder(), "Weapons"));
-		panel2.add(weapons);
-		f.add(panel2, BorderLayout.EAST);
 		
 		// Necessary at end
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -83,6 +67,7 @@ public class Board extends JPanel {
 		// dialog.setVisible(true);
 		f.setVisible(true);
 		f.repaint();
+		f.add(cPanel);
 	}
 
 	public JMenuBar createMenuBar() {

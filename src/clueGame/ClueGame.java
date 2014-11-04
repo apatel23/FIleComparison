@@ -250,6 +250,7 @@ public class ClueGame extends JFrame {
 	public static void main(String[] args) {
 		ClueGame game = new ClueGame("ClueLayoutStudents.csv", "roomConfig.txt", "Cards.txt", "PlayerCards.txt");
 		game.loadConfigFiles();
+		game.deal();
 		Board board = game.getBoard();
 		board.drawFrame();
 		DetectiveNotes gui = new DetectiveNotes();
