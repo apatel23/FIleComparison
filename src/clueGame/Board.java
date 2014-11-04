@@ -1,7 +1,9 @@
 package clueGame;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.event.MouseListener;
 import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
@@ -21,6 +23,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 
 import clueGame.RoomCell.DoorDirection;
 
@@ -43,16 +48,34 @@ public class Board extends JPanel {
 	public void drawFrame() {
 		// Create a JFrame
 		JFrame f = new JFrame();
-		f.setSize(900, 850);
+		f.setSize(900, 1200);
 		f.setTitle("Clue Board");
-		f.setLayout(null);
+		f.setLayout(new BorderLayout());
 
 		// Add JPanel to your JFrame
 		JPanel panel = new JPanel();
 		panel.setLocation(0, 0);
 		panel.setSize(750, 750);
-		f.add(panel);
+		f.add(panel, BorderLayout.CENTER);
 		f.setJMenuBar(createMenuBar());		
+		
+		// JPanel for Human Cards
+		JPanel panel2 = new JPanel();
+		panel2.setLayout(new GridLayout(1,4));
+		panel2.setSize(100,750);
+		JLabel myCards = new JLabel("My Cards");
+		panel2.add(myCards);
+		JTextField people = new JTextField();
+		JTextField weapons = new JTextField();
+		JTextField rooms = new JTextField();
+		
+		panel2.setBorder(new TitledBorder(new EtchedBorder(), "People"));
+		panel2.add(people);
+		panel2.setBorder(new TitledBorder(new EtchedBorder(), "Rooms"));
+		panel2.add(rooms);
+		panel2.setBorder(new TitledBorder(new EtchedBorder(), "Weapons"));
+		panel2.add(weapons);
+		f.add(panel2, BorderLayout.EAST);
 		
 		// Necessary at end
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
