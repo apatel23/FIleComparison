@@ -108,8 +108,8 @@ public class ClueGUI extends JFrame {
 		return panel;
 	}
 	
-	public void setCurrentPlayer(Player player) {
-		whoseTurn.setText(player.getName());
+	public void setCurrentPlayerText() {
+		whoseTurn.setText(game.getCurrentPlayer().getName());
 	}
 
 }

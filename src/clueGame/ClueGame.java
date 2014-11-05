@@ -63,7 +63,6 @@ public class ClueGame extends JFrame {
 			// Display Dialog with error message
 		}
 		setCurrentPlayer(players.get(counter));
-		//control.setCurrentPlayer(currentPlayer);
 		counter++;
 	}
 
@@ -284,5 +283,6 @@ public class ClueGame extends JFrame {
 
 	public void setCurrentPlayer(Player currentPlayer) {
 		this.currentPlayer = currentPlayer;
+		//control.setCurrentPlayerText();
 	}
 }
