@@ -35,18 +35,22 @@ public class ClueGame extends JFrame {
 	private static ClueGUI control;
 	public int turn;
 	private Boolean selectTarget = false;
+	private int counter = 0;
 
-	public ClueGame(String map, String legend, String deck, String players) {
+	public ClueGame(String map, String legend, String deck, String pieces) {
 		this.board = new Board();
 		this.rooms = new HashMap<Character, String>();
 		this.players = new ArrayList<>();
 		this.mapFile = map;
 		this.legendFile = legend;
-		this.playerFile = players;
+		this.playerFile = pieces;
 		this.deckFile = deck;
 		this.deck = new ArrayList<>();
 		this.solution = new Solution();
 		this.turn = 0;
+		loadConfigFiles();
+		this.currentPlayer = players.get(0);
+		
 	}
 
 	public Board getBoard() {
@@ -54,17 +58,13 @@ public class ClueGame extends JFrame {
 	}
 	
 	public void nextPlayer() {
-		int counter = 0;
-		while(true) {
-			currentPlayer = players.get(counter);
-			if(counter == 0) selectTarget = true;
-			else 
-				selectTarget = false;
-			counter++;
-			if(counter == players.size()) {
-				counter = 0;
-			}
+		if(counter == players.size()) counter = 0;
+		if(!selectTarget) { // Human presses nextPlayer before selecting target
+			// Display Dialog with error message
 		}
+		setCurrentPlayer(players.get(counter));
+		//control.setCurrentPlayer(currentPlayer);
+		counter++;
 	}
 
 	public void loadConfigFiles() {
@@ -266,7 +266,7 @@ public class ClueGame extends JFrame {
 
 	public static void main(String[] args) {
 		ClueGame game = new ClueGame("ClueLayoutStudents.csv", "roomConfig.txt", "Cards.txt", "PlayerCards.txt");
-		game.loadConfigFiles();
+		//game.loadConfigFiles();
 		game.deal();
 		Board board = game.getBoard();
 		board.drawFrame();
@@ -276,5 +276,13 @@ public class ClueGame extends JFrame {
 		control.setVisible(true);
 		JOptionPane.showMessageDialog(null, "You are Miss Scarlet. Press Next Player to Begin.");
 
+	}
+
+	public Player getCurrentPlayer() {
+		return currentPlayer;
+	}
+
+	public void setCurrentPlayer(Player currentPlayer) {
+		this.currentPlayer = currentPlayer;
 	}
 }

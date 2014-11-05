@@ -21,9 +21,11 @@ public class ClueGUI extends JFrame {
 	private JTextField guess;
 	private JTextField response;
 	private ClueGame game;
+	private Player player;
 	
 	public ClueGUI () {
-
+		game = new ClueGame("ClueLayoutStudents.csv", "roomConfig.txt", "Cards.txt", "PlayerCards.txt");
+		game.loadConfigFiles();
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Clue");
@@ -58,7 +60,6 @@ public class ClueGUI extends JFrame {
 		JButton nextPlayer = new JButton("Next Player");
 		nextPlayer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Next Player");
 				game.nextPlayer();
 			}
 			
@@ -66,6 +67,7 @@ public class ClueGUI extends JFrame {
 		JButton makeAccusation = new JButton("Make Accusation");
 		whoseTurn = new JTextField(15);
 		panel.add(whoseTurnLabel);
+		whoseTurn.setText(game.getCurrentPlayer().getName());
 		panel.add(whoseTurn);
 		panel.add(nextPlayer);
 		panel.add(makeAccusation);
@@ -104,6 +106,10 @@ public class ClueGUI extends JFrame {
 		panel.add(response);
 		panel.setBorder(new TitledBorder(new EtchedBorder(), "Guess Result"));
 		return panel;
+	}
+	
+	public void setCurrentPlayer(Player player) {
+		whoseTurn.setText(player.getName());
 	}
 
 }
