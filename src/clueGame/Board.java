@@ -42,15 +42,19 @@ public class Board extends JPanel {
 	private Set<BoardCell> targetList;
 	private Map<BoardCell, LinkedList<BoardCell>> adjList;
 	private ArrayList<Player> players;
+	
 	private List<Card> humanCards = new ArrayList<Card>();
 	private DetectiveNotes dNotes = new DetectiveNotes();
 	private CardPanel cPanel;
+	private ClueGUI gui;
+
 
 	// private myDialog dialog;
 
 	public void drawFrame() {
 		// Create a JFrame
 		JFrame f = new JFrame();
+		JPanel panel = new JPanel();
 		f.setSize(900, 850);
 		f.setTitle("Clue Board");
 		f.setLayout(new BorderLayout());
@@ -336,5 +340,7 @@ public class Board extends JPanel {
 		this.players = players;
 
 	}
+
+	
 
 }

@@ -30,8 +30,11 @@ public class ClueGame extends JFrame {
 	private String deckFile;
 	public ArrayList<Player> players;
 	private List<Card> deck;
+	private Player currentPlayer;
 	public Solution solution;
+	private static ClueGUI control;
 	public int turn;
+	private Boolean selectTarget = false;
 
 	public ClueGame(String map, String legend, String deck, String players) {
 		this.board = new Board();
@@ -48,6 +51,20 @@ public class ClueGame extends JFrame {
 
 	public Board getBoard() {
 		return board;
+	}
+	
+	public void nextPlayer() {
+		int counter = 0;
+		while(true) {
+			currentPlayer = players.get(counter);
+			if(counter == 0) selectTarget = true;
+			else 
+				selectTarget = false;
+			counter++;
+			if(counter == players.size()) {
+				counter = 0;
+			}
+		}
 	}
 
 	public void loadConfigFiles() {
@@ -255,6 +272,8 @@ public class ClueGame extends JFrame {
 		board.drawFrame();
 		DetectiveNotes gui = new DetectiveNotes();
 		gui.setVisible(true);
+		ClueGUI control = new ClueGUI();
+		control.setVisible(true);
 		JOptionPane.showMessageDialog(null, "You are Miss Scarlet. Press Next Player to Begin.");
 
 	}
