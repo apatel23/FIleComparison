@@ -1,6 +1,7 @@
 package clueGame;
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,7 +12,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -32,38 +35,94 @@ public class ClueGame extends JFrame {
 	private List<Card> deck;
 	private Player currentPlayer;
 	public Solution solution;
-	private static ClueGUI control;
 	public int turn;
 	private Boolean selectTarget = false;
-	private int counter = 0;
+	private int counter;
+	private Random rand;
+	private Integer roll;
+	private Set<BoardCell> adj;
 
 	public ClueGame(String map, String legend, String deck, String pieces) {
 		this.board = new Board();
 		this.rooms = new HashMap<Character, String>();
-		this.players = new ArrayList<>();
+		this.players = new ArrayList<Player>();
 		this.mapFile = map;
 		this.legendFile = legend;
 		this.playerFile = pieces;
 		this.deckFile = deck;
-		this.deck = new ArrayList<>();
+		this.deck = new ArrayList<Card>();
 		this.solution = new Solution();
 		this.turn = 0;
 		loadConfigFiles();
+		rollDie();
 		this.currentPlayer = players.get(0);
-		
+		this.counter = 0;
 	}
 
 	public Board getBoard() {
 		return board;
 	}
 	
+	public int rollDie() {
+		rand = new Random();
+		roll = rand.nextInt(5) + 1;
+		this.roll = roll;
+		return roll;
+	}
+	
+	public void displayTargets() {
+		int row = 0;
+		int col = 0;
+		
+		col = players.get(0).getCol();
+		row = players.get(0).getRow();
+		board = getBoard();
+		board.calcAdjacencies();
+		board.calcTargets(row, col, roll);
+		adj = board.getTargets();
+		System.out.println("targets size: " + adj.size());
+		repaint();
+	}
+	
+	public Set<BoardCell> getAdj() {
+		return adj;
+	}
+
 	public void nextPlayer() {
 		if(counter == players.size()) counter = 0;
-		if(!selectTarget) { // Human presses nextPlayer before selecting target
-			// Display Dialog with error message
+		setCurrentPlayer(players.get(counter));
+		System.out.println("Current Player: " + currentPlayer.getName());
+		rollDie();
+		System.out.println("p: " + players.size());
+		System.out.println("c: " + counter);
+		
+		if(counter == 0) { // human player
+			System.out.println("roll: " + roll);
+			board.setHumanTurn(true);
+			
+			displayTargets();
+		}
+		else { // not the human's turn
+			board.setHumanTurn(false);
+		}
+		System.out.println("Human Turn? " + board.getHumanTurn());
+		
+		if(counter == 0 && !selectTarget) { // Human presses nextPlayer before selecting target
+			JOptionPane.showMessageDialog(null, "You must finish your turn!");
+			//while(!selectTarget) {
+				//JOptionPane.showMessageDialog(null, "You must finish your turn!");
+				// if(target is selected) selectTarget = true;
+			//}
+		}
+		
+		
+		else { // computer player
+			repaint();
+			setCurrentPlayer(players.get(counter));
 		}
 		setCurrentPlayer(players.get(counter));
 		counter++;
+		
 	}
 
 	public void loadConfigFiles() {
@@ -262,19 +321,9 @@ public class ClueGame extends JFrame {
 		}
 		return color;
 	}
-
-	public static void main(String[] args) {
-		ClueGame game = new ClueGame("ClueLayoutStudents.csv", "roomConfig.txt", "Cards.txt", "PlayerCards.txt");
-		//game.loadConfigFiles();
-		game.deal();
-		Board board = game.getBoard();
-		board.drawFrame();
-		DetectiveNotes gui = new DetectiveNotes();
-		gui.setVisible(true);
-		ClueGUI control = new ClueGUI();
-		control.setVisible(true);
-		JOptionPane.showMessageDialog(null, "You are Miss Scarlet. Press Next Player to Begin.");
-
+	
+	public Integer getRoll() {
+		return roll;
 	}
 
 	public Player getCurrentPlayer() {
@@ -283,6 +332,20 @@ public class ClueGame extends JFrame {
 
 	public void setCurrentPlayer(Player currentPlayer) {
 		this.currentPlayer = currentPlayer;
-		//control.setCurrentPlayerText();
 	}
+
+	public static void main(String[] args) {
+		ClueGame game = new ClueGame("ClueLayoutStudents.csv", "roomConfig.txt", "Cards.txt", "PlayerCards.txt");
+		game.deal();
+		Board board = game.getBoard();
+		board.drawFrame();
+		DetectiveNotes gui = new DetectiveNotes();
+		gui.setVisible(true);
+		ClueGUI control = new ClueGUI();
+		control.setVisible(true);
+		JOptionPane.showMessageDialog(null, "You are Professor Plum. Press Next Player to Begin.");
+
+	}
+	
+
 }

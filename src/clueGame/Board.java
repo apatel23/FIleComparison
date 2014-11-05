@@ -1,6 +1,7 @@
 package clueGame;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridLayout;
@@ -42,11 +43,13 @@ public class Board extends JPanel {
 	private Set<BoardCell> targetList;
 	private Map<BoardCell, LinkedList<BoardCell>> adjList;
 	private ArrayList<Player> players;
-	
 	private List<Card> humanCards = new ArrayList<Card>();
 	private DetectiveNotes dNotes = new DetectiveNotes();
 	private CardPanel cPanel;
+	protected static final int tileDim = 30;
 	private ClueGUI gui;
+	private Boolean humanTurn = false;
+	private Player tempPlayer;
 
 
 	// private myDialog dialog;
@@ -57,13 +60,13 @@ public class Board extends JPanel {
 		JPanel panel = new JPanel();
 		f.setSize(900, 850);
 		f.setTitle("Clue Board");
-		f.setLayout(new BorderLayout());
-		f.setJMenuBar(createMenuBar());		
+		f.setLayout(null);
+		f.setJMenuBar(createMenuBar());	
 		
 		humanCards = players.get(0).getCards();
 		System.out.println(humanCards);
 		cPanel = new CardPanel(humanCards);
-		
+		cPanel.setLocation(800, 100);
 		
 		// Necessary at end
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -163,8 +166,14 @@ public class Board extends JPanel {
 		for (Player p : players) {
 			p.draw(g);
 		}
+		System.out.println("human turn?" + getHumanTurn());
+		if(getHumanTurn()) {
+			Set<BoardCell> targets = getTargets();
+			highlightTargets(targets,g);
+		}
 
 		drawNames(g);
+		
 	}
 
 	public void loadBoardConfig(String mapFile) throws FileNotFoundException, BadConfigFormatException {
@@ -341,6 +350,31 @@ public class Board extends JPanel {
 
 	}
 
-	
+	public void highlightTargets(Set<BoardCell> adj, Graphics g) {
+		
 
+		g.setColor(Color.BLUE);
+		g.fillRect(30, 30, tileDim, tileDim);
+		g.setColor(Color.BLACK);
+		g.drawRect(30, 30, tileDim, tileDim);
+//		for (BoardCell b : adj) {
+//			int row = b.getPixelRow();
+//			int col = b.getPixelCol();
+//			System.out.println("highlightTargets");
+//			g.setColor(Color.BLUE);
+//			g.fillRect(30, 30, tileDim, tileDim);
+//			g.setColor(Color.BLACK);
+//			g.drawRect(30, 30, tileDim, tileDim);
+//		}
+			
+	}
+
+	public Boolean getHumanTurn() {
+		return humanTurn;
+	}
+
+	public void setHumanTurn(Boolean humanTurn) {
+		this.humanTurn = humanTurn;
+	}
+	
 }

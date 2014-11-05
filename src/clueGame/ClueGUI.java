@@ -3,6 +3,7 @@ package clueGame;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -17,15 +18,19 @@ import javax.swing.border.TitledBorder;
 public class ClueGUI extends JFrame {
 	
 	private JTextField whoseTurn;
-	private JTextField roll;
+	private JTextField rollField;
+	private Integer roll;
 	private JTextField guess;
 	private JTextField response;
 	private ClueGame game;
 	private Player player;
+	private String name;
+	private Random rand;
+	
 	
 	public ClueGUI () {
 		game = new ClueGame("ClueLayoutStudents.csv", "roomConfig.txt", "Cards.txt", "PlayerCards.txt");
-		game.loadConfigFiles();
+		//game.loadConfigFiles();
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Clue");
@@ -61,13 +66,17 @@ public class ClueGUI extends JFrame {
 		nextPlayer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				game.nextPlayer();
+				setCurrentPlayerName(game.getCurrentPlayer().getName());
+				updateDisplay();
 			}
 			
 		});
 		JButton makeAccusation = new JButton("Make Accusation");
 		whoseTurn = new JTextField(15);
+		rollField = new JTextField(5);
 		panel.add(whoseTurnLabel);
 		whoseTurn.setText(game.getCurrentPlayer().getName());
+		updateDisplay();
 		panel.add(whoseTurn);
 		panel.add(nextPlayer);
 		panel.add(makeAccusation);
@@ -78,9 +87,11 @@ public class ClueGUI extends JFrame {
 	private JPanel rollPanel() {
 		JPanel panel = new JPanel();
 		JLabel rollLabel = new JLabel("Roll");
-		roll = new JTextField(5);
+		rollField = new JTextField(5);
+		rollField.setText("");
+		game.displayTargets();
 		panel.add(rollLabel);
-		panel.add(roll);
+		panel.add(rollField);
 		panel.setBorder(new TitledBorder(new EtchedBorder(), "Die"));
 		return panel;
 	}
@@ -108,8 +119,19 @@ public class ClueGUI extends JFrame {
 		return panel;
 	}
 	
-	public void setCurrentPlayerText() {
-		whoseTurn.setText(game.getCurrentPlayer().getName());
+	public void setCurrentPlayerName(String playerName) {
+		this.name = playerName;
+		updateDisplay();
+	}
+	
+	public void setCurrentRoll(Integer moves) {
+		this.roll = moves;
+		updateDisplay();
 	}
 
+	public void updateDisplay() {
+		whoseTurn.setText(name);
+		Integer roll = game.rollDie();
+		rollField.setText(roll.toString());
+	}
 }
