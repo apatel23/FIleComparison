@@ -1,42 +1,27 @@
 package clueGame;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.ActionEvent;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
 
 import clueGame.RoomCell.DoorDirection;
 
-public class Board extends JPanel {
+public class Board extends JPanel implements MouseListener {
 	private static final long serialVersionUID = 1L;
 	public static int MAX_ROWS = 50;
 	public static int MAX_COLS = 50;
@@ -49,144 +34,123 @@ public class Board extends JPanel {
 	private ArrayList<BoardCell> targets;
 	private Map<BoardCell, LinkedList<BoardCell>> adjList;
 	private ArrayList<Player> players;
-	private List<Card> humanCards = new ArrayList<Card>();
-	private DetectiveNotes dNotes = new DetectiveNotes();
-	private Boolean selectTarget = false;
+	private Set<BoardCell> adj;
 	protected static final int tileDim = 30;
-	private Boolean humanTurn = false;
+	private Boolean needToFinish = false;
 	private Random rand;
 	private int roll;
 	private int row;
 	private int col;
-	private int count = 0;
-	private MakeAGuess guess;
-	private String person;
-	private String weapon;
+	private int counter;
+	private Boolean hasRolled = false;
 
 	public Board() {
 		targetList = new HashSet<BoardCell>();
 		targets = new ArrayList<BoardCell>();
-
+		this.counter = 0;
 	}
-	
+
+
+
+	public void displayTargets() {
+
+		roll = rollDie();
+
+		int row = 0;
+		int col = 0;
+
+		col = players.get(counter).getCol();
+		row = players.get(counter).getRow();
+		calcAdjacencies();
+		calcTargets(row, col, roll);
+		adj = getTargets();
+		// computer's turn
+		BoardCell b = selectTarget(adj);
+		players.get(counter).row = b.getRow();
+		players.get(counter).col = b.getCol();
+		repaint();
+	}
+
+	public BoardCell selectTarget(Set<BoardCell> targets) {
+		Random rand = new Random();
+		ArrayList<BoardCell> list = new ArrayList(targets);
+		if (targets.size() == 1) {
+			return list.get(0);
+		}
+		int target = rand.nextInt(targets.size());
+		int count = 0;
+		for(BoardCell b : targets) {
+			if(target == count) {
+				return b;
+			}
+			count++;	
+		}
+		return null;
+	}
+
+	public void humanPlay() {
+		addMouseListener(this);
+		needToFinish = true;
+		if (!hasRolled) {
+			roll = rollDie();
+			hasRolled = true;
+		}
+		col = players.get(0).getCol();
+		row = players.get(0).getRow();
+		calcAdjacencies();
+		calcTargets(row, col, roll);
+		targets = new ArrayList<BoardCell>(targetList);
+		repaint();
+	}
+
+		public void mouseClicked(MouseEvent e) {
+			BoardCell cell = null;
+
+			for (int i = 0; i < getTargets().size(); i++) {
+				if (targets.get(i).containsClick(e.getX(), e.getY())) {
+					cell = targets.get(i);
+					break;
+				}
+			}
+			if (cell != null) { // valid target
+				// Update the location of the human player
+				row = cell.getRow();
+				col = cell.getCol();
+				players.get(0).row = row;
+				players.get(0).col = col;
+				targetList.clear(); // clear the target list
+				needToFinish = false;
+				hasRolled = false;
+				counter++;
+				repaint();
+			} else { // invalid target
+				System.out.println("invalid target!");
+				JOptionPane.showMessageDialog(null, "Invalid Target!");
+			}
+
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+		}
+
+
 	public int rollDie() {
 		rand = new Random();
-		roll = rand.nextInt(5) + 1;
+		roll = rand.nextInt(6) + 1;
 		return roll;
-	}
-
-//	public void humanPlay() {
-//		System.out.println("Human's turn");
-//		roll = rollDie();
-//		System.out.println("RollH: " + roll);
-//		System.out.println("Current position: " + "Col: "
-//				+ players.get(0).getCol() + " Row: " + players.get(0).getRow());
-//		col = players.get(0).getCol();
-//		row = players.get(0).getRow();
-//
-//		calcAdjacencies();
-//		calcTargets(row, col, roll);
-//		targetList = getTargets();
-//		targets.clear();
-//		targets = new ArrayList<BoardCell>(targetList);
-//		// display targets
-//		System.out.println("targets size: " + targets.size());
-//		
-//		repaint();
-//		
-//
-//		// MouseListener for JFrame
-//		if (getHumanTurn()) {
-//			addMouseListener(new MouseListener() {
-//				@SuppressWarnings("unused")
-//				@Override
-//				public void mouseClicked(MouseEvent e) {
-//					int x = e.getX();
-//					int y = e.getY();
-//					System.out.println("coordinates of click: " + x + ", " + y);
-//					BoardCell cell = null;
-//					for (int i = 0; i < getTargets().size(); i++) {
-//						if (targets.get(i).containsClick(e.getX(), e.getY())) {
-//							cell = targets.get(i);
-//							System.out.println("cell: " + cell.getCol() + ", " + cell.getRow());
-//							break;
-//						}
-//					}
-//					if (cell != null) { // valid target
-//						// Update the location of the human player
-//						row = cell.getRow();
-//						col = cell.getCol();
-//						players.get(0).row = row;
-//						players.get(0).col = col;
-//						targetList.clear(); // clear the target list
-//						repaint();
-//						System.out.println("Move to cell: "
-//								+ players.get(0).col + ", "
-//								+ players.get(0).row);
-//						// TODO Move player to the new cell, nextPlayer's turn
-//						if(cell.isRoom()) {
-//							char room = ((RoomCell) cell).getInitial();
-//							String r = initialName(room);
-//							guess = new MakeAGuess(r);
-//							guess.solution(person, weapon);
-//							
-//						}
-//						humanTurn = false;
-//						setSelectTarget(true);
-//					} else { // invalid target
-//						System.out.println("invalid target! " + count);
-//						JOptionPane.showMessageDialog(null, "Invalid Target!");
-//					}
-//					count++;
-//
-//				}
-//
-//				@Override
-//				public void mouseEntered(MouseEvent e) {
-//				}
-//
-//				@Override
-//				public void mouseExited(MouseEvent e) {
-//				}
-//
-//				@Override
-//				public void mousePressed(MouseEvent e) {
-//				}
-//
-//				@Override
-//				public void mouseReleased(MouseEvent e) {
-//				}
-//			});
-//		}
-//	}
-	
-	public String initialName(char intial) {
-		String room = "";
-		switch(intial) {
-		case 'D':
-			room = "Dungeoun";
-		case 'K': 
-			room = "Kitchen";
-		case 'B':
-			room = "Bedroom";
-		case 'L':
-			room = "Library";
-		case 'S':
-			room = "Study";
-		case 'R':
-			room = "Workshop";
-		case 'E':
-			room = "Dining Room";
-		case 'P':
-			room = "Bathroom";
-		case 'T':
-			room = "Theatre";
-		case 'X':
-			room = "Closet";
-		case 'W':
-			room = "Walkway";
-		}
-		return room;
 	}
 
 	public void drawNames(Graphics g) {
@@ -217,22 +181,20 @@ public class Board extends JPanel {
 
 		for (int i = 0; i < numRows; i++) {
 			for (int j = 0; j < numColumns; j++) {
-				if (getHumanTurn() && targetList.contains(board[i][j])) {
+				if (getNeedToFinish() && targetList.contains(board[i][j])) {
 					board[i][j].draw(g, this, true);
 				} else
 					board[i][j].draw(g, this, false);
 			}
 		}
-		
 		for (Player p : players) {
 			p.draw(g);
 		}
-		
 		drawNames(g);
 	}
 
 	public void loadBoardConfig(String mapFile) throws FileNotFoundException,
-			BadConfigFormatException {
+	BadConfigFormatException {
 		board = new BoardCell[MAX_ROWS][MAX_COLS];
 		FileReader reader = new FileReader(mapFile);
 		Scanner fileIn = new Scanner(reader);
@@ -408,28 +370,40 @@ public class Board extends JPanel {
 
 	}
 
-	public Boolean getHumanTurn() {
-		return humanTurn;
+	public Boolean getNeedToFinish() {
+		return needToFinish;
 	}
 
-	public void setHumanTurn(Boolean humanTurn) {
-		this.humanTurn = humanTurn;
-	}
-	
-	public Boolean getSelectTarget() {
-		return selectTarget;
+	public void setNeedToFinsish(Boolean needToFinish) {
+		this.needToFinish = needToFinish;
 	}
 
-	public void setSelectTarget(Boolean selectTarget) {
-		this.selectTarget = selectTarget;
-	}
-	
 	public int getRoll() {
 		return roll;
 	}
-	
+
 	public void setRoll(int roll) {
 		this.roll = roll;
+	}
+
+	public int getCounter() {
+		return counter;
+	}
+
+	public void setCounter(int counter) {
+		this.counter = counter;
+	}
+
+	public Boolean getHasRolled() {
+		return hasRolled;
+	}
+
+	public void setHasRolled(Boolean hasRolled) {
+		this.hasRolled = hasRolled;
+	}
+
+	public void setNeedToFinish(boolean b) {
+		this.needToFinish = b;
 	}
 
 }
