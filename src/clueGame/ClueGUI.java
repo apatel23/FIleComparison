@@ -9,7 +9,6 @@ import java.util.Random;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
@@ -22,16 +21,10 @@ public class ClueGUI extends JPanel {
 	private JTextField whoseTurn = new JTextField("Professor Plum");
 	private JTextField rollField;
 	private Integer roll;
-	private String guess;
-	private JTextField guessField;
+	private JTextField guess;
 	private JTextField response;
 	private ClueGame game;
-	private Player player;
 	private String name;
-	private Random rand;
-	private JButton nextPlayer;
-	
-	
 	public ClueGUI (ClueGame game) {
 		this.game = game;
 		// Contents of North Layout
@@ -61,32 +54,16 @@ public class ClueGUI extends JPanel {
 	private JPanel northPanel() {
 		JPanel panel = new JPanel();
 		JLabel whoseTurnLabel = new JLabel("Whose Turn?");
-		nextPlayer = new JButton("Next Player");
+		JButton nextPlayer = new JButton("Next Player");
 		JButton makeAccusation = new JButton("Make Accusation");
-		makeAccusation.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if(game.getHumanTurn()) {
-					setCurrentGuess(game.getGuess());
-					game.makeAccustion();
-					updateDisplay();
-				}
-				else {
-					JOptionPane.showMessageDialog(null, "Wait until it's your turn!");
-				}
-				
-			}
-			
-		});
 		whoseTurn = new JTextField(15);
 		rollField = new JTextField(5);
 		panel.add(whoseTurnLabel);
 		whoseTurn.setText(game.getCurrentPlayer().getName());
-		//updateDisplay();
+		updateDisplay();
 		nextPlayer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				game.nextPlayer();
-				setCurrentPlayerName(game.getCurrentPlayer().getName());
-				updateDisplay();
 			}
 			
 		});
@@ -95,16 +72,6 @@ public class ClueGUI extends JPanel {
 		panel.add(nextPlayer);
 		panel.add(makeAccusation);
 		return panel;
-	}
-	
-	public void actionPerformed(ActionEvent e) {
-		if(e.getSource() == nextPlayer) {
-			System.out.println("click");
-			if(!game.getTargetSelected() && player == game.players.get(0)) {
-				
-				JOptionPane.showMessageDialog(null, "You must finish your turn!");
-			}
-		}
 	}
 	
 	// Contents of rollPanel: Roll label and text-box, and Die border
@@ -123,10 +90,9 @@ public class ClueGUI extends JPanel {
 	private JPanel guessPanel() {
 		JPanel panel = new JPanel();
 		JLabel guessLabel = new JLabel("Guess");
-		guessField = new JTextField(20);
-		guessField.setText("");
+		guess = new JTextField(20);
 		panel.add(guessLabel);
-		panel.add(guessField);
+		panel.add(guess);
 		panel.setBorder(new TitledBorder(new EtchedBorder(), "Guess"));
 		return panel;
 	}
@@ -153,19 +119,9 @@ public class ClueGUI extends JPanel {
 		updateDisplay();
 	}
 	
-	public void setCurrentGuess(String guessText) {
-		this.guess = guessText;
-	}
-	
-	public Integer getRoll() {
-		return roll;
-	}
-
 	public void updateDisplay() {
-		guessField.setText(guess);
 		whoseTurn.setText(name);
 		Integer roll = game.getBoard().getRoll();
 		rollField.setText(roll.toString());
-		
 	}
 }
