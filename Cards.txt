@@ -19,5 +19,3 @@ Study
 Dining room
 Lounge
 Hall
-Closet
-Walkway

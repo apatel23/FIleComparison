@@ -20,7 +20,6 @@ public class CardPanel extends JPanel{
 	public CardPanel(List<Card> humanCards) {
 		setLayout(new GridLayout(4, 1));
 		myCards = new JLabel ("My cards");
-		myCards.setLocation(800, 100);
 		add(myCards);
 		sortHumanCards(humanCards);
 		add(addPeopleLabels());

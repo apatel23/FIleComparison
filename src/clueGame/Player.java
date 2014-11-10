@@ -31,9 +31,9 @@ public class Player {
 
 	public void draw(Graphics g) {
 		g.setColor(getColor());
-		g.fillOval(getPixelRow(), getPixelCol(), circleDim, circleDim);
+		g.fillOval(getCol() * 30, getRow() * 30, circleDim, circleDim);
 		g.setColor(Color.BLACK);
-		g.drawOval(getPixelRow(), getPixelCol(), circleDim, circleDim);
+		g.drawOval(getCol() * 30, getRow() * 30, circleDim, circleDim);
 	}
 
 	public Card disproveSuggestion(String person, String room, String weapon) {

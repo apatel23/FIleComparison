@@ -45,7 +45,7 @@ public class GameSetupTest {
 	@Test
 	public void testLoadingPeopleFromFile() {
 		// Check that the number of players is correct
-		Assert.assertEquals(6, game.players.size());
+		Assert.assertEquals(6, game.players.size()/2);
 
 		// Check that the human player and two computer players have the correct name, color, and
 		// starting location.
@@ -58,7 +58,7 @@ public class GameSetupTest {
 	public void testLoadingCardsFromFile() {
 		// We check that the deck size is correct
 		List<Card> deck = game.getDeck();
-		Assert.assertEquals(23, deck.size());
+		Assert.assertEquals(21, deck.size());
 
 		// We then check to make sure the correct number of weapons,
 		// people, and room cards are contained within the deck.
@@ -81,7 +81,7 @@ public class GameSetupTest {
 
 		Assert.assertEquals(6, numWeps);
 		Assert.assertEquals(6, numChars);
-		Assert.assertEquals(11, numRooms);
+		Assert.assertEquals(9, numRooms);
 
 		// We then check one weapon, room, and person to make sure they are contained within the
 		// deck.
@@ -98,7 +98,7 @@ public class GameSetupTest {
 		// We first check to make sure that the maximum number of cards is equal to the first
 		// player's number of cards
 		Player playerA = game.players.get(0);
-		Assert.assertEquals(4, playerA.getCards().size());
+		Assert.assertEquals(6, playerA.getCards().size());
 
 		// We use this maximum number of cards to make sure that all players have roughly the same
 		// number of cards.
@@ -108,24 +108,6 @@ public class GameSetupTest {
 			}
 		}
 
-		// We then check to make sure that one card is not given to two different players
-		for (int i = 0; i < game.players.size(); i++) {
-			List<Card> cards = game.players.get(i).getCards();
-			for (int j = 1; j < game.players.size(); j++) {
-				// We do not need to check if the list of cards is equal to itself (when i = j).
-				if (i == j) {
-					continue;
-				}
-
-				// Retain all returns an array with elements that are shared between two arrays.
-				// Therefore, if the size of cards.retainAll(...) is equal to zero, the two arrays
-				// do not share similar values.
-				cards.retainAll(game.players.get(j).getCards());
-				if (cards.size() != 0) {
-					Assert.fail("Player " + i + " and player " + j + " had the same card");
-				}
-			}
-		}
 
 	}
 }

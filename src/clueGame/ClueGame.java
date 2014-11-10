@@ -1,7 +1,12 @@
 package clueGame;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -17,6 +22,9 @@ import java.util.Scanner;
 import java.util.Set;
 
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 import clueGame.Card.CardType;
@@ -25,6 +33,7 @@ import clueGame.Card.CardType;
 
 public class ClueGame extends JFrame {
 	private static final long serialVersionUID = 1L;
+	protected static final int tileDim = 30;
 	private Map<Character, String> rooms;
 	private Board board;
 	private String mapFile;
@@ -36,13 +45,27 @@ public class ClueGame extends JFrame {
 	private Player currentPlayer;
 	public Solution solution;
 	public int turn;
-	private Boolean selectTarget = false;
 	private int counter;
 	private Random rand;
 	private Integer roll;
 	private Set<BoardCell> adj;
+	private ClueGUI control;
+	private DetectiveNotes detectiveNotes;
+	private List<Card> humanCards = new ArrayList<Card>();
+	private CardPanel cPanel;
+	private int target;
+	private ArrayList<BoardCell> targets;
+	private String room;
+	private String person;
+	private String weapon;
+	private String guess;
+	private MakeAGuess suggestion;
+	private MakeAccusation accusation;
+	private Boolean humanTurn;
+	private Boolean selectTarget = false;
 
 	public ClueGame(String map, String legend, String deck, String pieces) {
+		
 		this.board = new Board();
 		this.rooms = new HashMap<Character, String>();
 		this.players = new ArrayList<Player>();
@@ -54,11 +77,183 @@ public class ClueGame extends JFrame {
 		this.solution = new Solution();
 		this.turn = 0;
 		loadConfigFiles();
-		rollDie();
 		this.currentPlayer = players.get(0);
 		this.counter = 0;
+		setHumanTurn(true);
+		
+		// JFrame 
+		setLayout(new BorderLayout());
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setTitle("Clue Game");
+		setResizable(false);
+		setSize(800,850);
+		setJMenuBar(createMenuBar());	
+		deal();
+		detectiveNotes = new DetectiveNotes();
+		control = new ClueGUI(this);
+		humanCards = players.get(0).getCards();
+		System.out.println(humanCards);
+		cPanel = new CardPanel(humanCards);
+		add(control, BorderLayout.SOUTH);
+		add(board, BorderLayout.CENTER);
+		add(cPanel, BorderLayout.EAST);
+		JOptionPane.showMessageDialog(null, "You are Professor Plum. Press Next Player to Begin.");
+		setCurrentPlayer(players.get(counter));
+		board.setHumanTurn(true);
+		
 	}
+	
+	public JMenuBar createMenuBar() {
+		JMenuBar menuBar;
+		JMenu menu;
+		// Create the menu bar.
+		menuBar = new JMenuBar();
 
+		// Build the first menu.
+		menu = new JMenu("Menu");
+		menuBar.add(menu);
+
+		//Creates the Detective notes for the menu
+		JMenuItem notesAction = new JMenuItem("Detective Notes");
+		notesAction.addMouseListener(new MouseListener(){
+			@Override
+			public void mouseEntered(java.awt.event.MouseEvent e) {}
+			@Override
+			public void mouseExited(java.awt.event.MouseEvent e) {}
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e){
+				detectiveNotes = new DetectiveNotes();
+				detectiveNotes.setVisible(true);
+			}
+			@Override
+			public void mouseReleased(java.awt.event.MouseEvent e){}
+			@Override
+			public void mouseClicked(java.awt.event.MouseEvent e) {}
+		});
+		
+		//Creates the Exit button
+		JMenuItem exitAction = new JMenuItem("Exit");
+		exitAction.addMouseListener(new MouseListener(){
+			@Override
+			public void mouseEntered(java.awt.event.MouseEvent e) {}
+			@Override
+			public void mouseExited(java.awt.event.MouseEvent e) {}
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e){
+				System.exit(0);
+			}
+			@Override
+			public void mouseReleased(java.awt.event.MouseEvent e){}
+			@Override
+			public void mouseClicked(java.awt.event.MouseEvent e){}
+		});
+
+		//Adds the objects to the menu
+		menu.add(notesAction);
+		menu.addSeparator();
+		menu.add(exitAction);
+
+		return menuBar;
+	}
+	
+	public void makeAccustion() {
+		accusation = new MakeAccusation();
+		accusation.solution(room, person, weapon);
+		guess =  accusation.getPerson() + " in the " + accusation.getRoom() + " with the " + accusation.getWeapon();
+		setGuess(guess);
+		// Handle Suggestion
+		Card card = players.get(0).disproveSuggestion(accusation.getRoom(), accusation.getPerson(),
+				accusation.getWeapon());
+		if(card != null) System.out.println(card.name);
+		else System.out.println("null");
+	}
+	
+	public void humanPlay() {
+		roll = rollDie();
+		
+		System.out.println("roll: " + getRoll());
+		int row = 0;
+		int col = 0;
+		col = players.get(counter).getCol();
+		row = players.get(counter).getRow();
+		board = getBoard();
+		board.calcAdjacencies();
+		board.calcTargets(row, col, roll);
+		adj = board.getTargets();
+		targets = new ArrayList<BoardCell>(adj);
+		
+		for(int i = 0; i < targets.size(); i++) {
+			System.out.println("Target: " + targets.get(i).getCol() + " " + targets.get(i).getRow());
+		}
+		
+		addMouseListener(new MouseListener() {
+			@SuppressWarnings("unused")
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				int x = e.getX();
+				int y = e.getY();
+				System.out.println("coordinates of click: " + x + ", " + y);
+				
+				BoardCell cell = null;
+				for (int i = 0; i < targets.size(); i++) {
+					if (targets.get(i).containsClick(e.getX(), e.getY())) {
+						cell = targets.get(i);
+						System.out.println("cell: " + cell.getCol() + ", " + cell.getRow());
+						break;
+					}
+				}
+				if (cell != null) { // valid target
+					// Update the location of the human player
+					int row = cell.getRow();
+					int col = cell.getCol();
+					players.get(0).row = row;
+					players.get(0).col = col;
+					targets.clear(); // clear the target list
+					repaint();
+					System.out.println("Move to cell: "
+							+ players.get(0).col + ", "
+							+ players.get(0).row);
+					// TODO Move player to the new cell, nextPlayer's turn
+					if(cell.isRoom()) {
+						char room = ((RoomCell) cell).getInitial();
+						String r = board.initialName(room);
+						suggestion = new MakeAGuess(r);
+						suggestion.solution(person, weapon);
+						System.out.println("Human guess: " + person + " " + weapon);
+						
+					}
+					board.setHumanTurn(false);
+					setTargetSelected(true);
+					repaint();
+				} else { // invalid target
+					System.out.println("invalid target! ");
+					JOptionPane.showMessageDialog(null, "Invalid Target!");
+				}
+				
+				humanTurn = false;
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				
+			}
+		});
+	
+	}
+	
 	public Board getBoard() {
 		return board;
 	}
@@ -66,64 +261,77 @@ public class ClueGame extends JFrame {
 	public int rollDie() {
 		rand = new Random();
 		roll = rand.nextInt(5) + 1;
-		this.roll = roll;
 		return roll;
 	}
 	
 	public void displayTargets() {
+		
+		System.out.println("Current Player: " + currentPlayer.getName());
+		System.out.println("Position: " + currentPlayer.getCol() + ", " + currentPlayer.getRow());
+		roll = board.rollDie();
+		board.setRoll(roll);
+		System.out.println("roll: " + getRoll());
+		
 		int row = 0;
 		int col = 0;
 		
-		col = players.get(0).getCol();
-		row = players.get(0).getRow();
+		col = players.get(counter).getCol();
+		row = players.get(counter).getRow();
 		board = getBoard();
 		board.calcAdjacencies();
-		board.calcTargets(row, col, roll);
+		board.calcTargets(row, col, board.getRoll());
 		adj = board.getTargets();
 		System.out.println("targets size: " + adj.size());
-		repaint();
+		if(board.getHumanTurn()) {
+			board.setHumanTurn(true);
+		}
+		else { // computer's turn
+			System.out.println("Computer: ");
+			BoardCell b = selectTarget(adj);
+			players.get(counter).row = b.getRow();
+			players.get(counter).col = b.getCol();
+			repaint();
+		}
 	}
 	
-	public Set<BoardCell> getAdj() {
-		return adj;
+	// return the chosen target for the computer
+	public BoardCell selectTarget(Set<BoardCell> targets) {
+		Random rand = new Random();
+		target = rand.nextInt(targets.size());
+		int count = 0;
+		for(BoardCell b : targets) {
+			if(target == count || targets.size() == 1 ) {
+				System.out.println("c move to: " + b.getCol() + ", " + b.getRow());
+				System.out.println("--------------------------------");
+				return b;
+			}
+			count++;	
+		}
+		return null;
 	}
 
 	public void nextPlayer() {
 		if(counter == players.size()) counter = 0;
 		setCurrentPlayer(players.get(counter));
-		System.out.println("Current Player: " + currentPlayer.getName());
-		rollDie();
-		System.out.println("p: " + players.size());
-		System.out.println("c: " + counter);
-		
-		if(counter == 0) { // human player
-			System.out.println("roll: " + roll);
-			board.setHumanTurn(true);
-			
+
+		// Human turn
+		if(counter == 0) {
+			humanTurn = true;
+			setHumanTurn(true);
+			humanPlay();
+		}
+		// Computer Turn
+		else {
 			displayTargets();
 		}
-		else { // not the human's turn
-			board.setHumanTurn(false);
-		}
-		System.out.println("Human Turn? " + board.getHumanTurn());
-		
-		if(counter == 0 && !selectTarget) { // Human presses nextPlayer before selecting target
+		// Next Player pressed before player selects target
+		if(counter == 0 && !board.getSelectTarget()) { 
 			JOptionPane.showMessageDialog(null, "You must finish your turn!");
-			//while(!selectTarget) {
-				//JOptionPane.showMessageDialog(null, "You must finish your turn!");
-				// if(target is selected) selectTarget = true;
-			//}
+			
 		}
-		
-		
-		else { // computer player
-			repaint();
-			setCurrentPlayer(players.get(counter));
-		}
-		setCurrentPlayer(players.get(counter));
 		counter++;
-		
 	}
+	
 
 	public void loadConfigFiles() {
 		try {
@@ -329,23 +537,39 @@ public class ClueGame extends JFrame {
 	public Player getCurrentPlayer() {
 		return currentPlayer;
 	}
+	
+	public Boolean getHumanTurn() {
+		return humanTurn;
+	}
+	
+	public void setHumanTurn(Boolean humanTurn) {
+		this.humanTurn = humanTurn;
+	}
 
 	public void setCurrentPlayer(Player currentPlayer) {
 		this.currentPlayer = currentPlayer;
 	}
+	
+	public void setTargetSelected(Boolean selectTarget) {
+		this.selectTarget = selectTarget;
+	}
+	
+	public Boolean getTargetSelected() {
+		return selectTarget;
+	}
+	
+	public String getGuess() {
+		return guess;
+	}
+	
+	public void setGuess(String guess) {
+		this.guess = guess;
+	}
 
 	public static void main(String[] args) {
 		ClueGame game = new ClueGame("ClueLayoutStudents.csv", "roomConfig.txt", "Cards.txt", "PlayerCards.txt");
-		game.deal();
-		Board board = game.getBoard();
-		board.drawFrame();
-		DetectiveNotes gui = new DetectiveNotes();
-		gui.setVisible(true);
-		ClueGUI control = new ClueGUI();
-		control.setVisible(true);
-		JOptionPane.showMessageDialog(null, "You are Professor Plum. Press Next Player to Begin.");
+		game.setVisible(true);
 
-	}
-	
+	}	
 
 }

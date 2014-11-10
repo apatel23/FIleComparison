@@ -14,10 +14,15 @@ public class WalkwayCell extends BoardCell {
 	}
 
 	@Override
-	void draw(Graphics g, Board b) {
+	void draw(Graphics g, Board b, Boolean humanTurn) {
 		int row = getPixelRow();
 		int col = getPixelCol();
-		g.setColor(Color.YELLOW);
+		if(humanTurn) 
+			g.setColor(Color.BLUE);
+		
+		else 
+			g.setColor(Color.YELLOW);
+		
 		g.fillRect(row, col, tileDim, tileDim);
 		g.setColor(Color.BLACK);
 		g.drawRect(row, col, tileDim, tileDim);
